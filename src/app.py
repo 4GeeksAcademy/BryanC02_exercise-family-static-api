@@ -37,7 +37,47 @@ def handle_hello():
                      "family": members}
     return jsonify(response_body), 200
 
+@app.route('/members/<int:member_id>', methods=['GET'])
+def get_one_member(member_id):
+    member = jackson_family.get_member(member_id)
+    if member:
+        return jsonify(member), 200
+    else:
+        return jsonify({"error": "Member not found"}), 400
+    
+@app.route('/members', methods=['POST'])
+def add_member():
+    data = request.get_json()
+    
+    if "first_name" not in data or "age" not in data or "lucky_numbers" not in data:
+        return jsonify({"error": "Missing required fields"}), 400
+    
+    member = jackson_family.add_member(data)
+    return jsonify(member), 200
 
+@app.route('/members/<int:member_id>', methods=['DELETE'])
+def delete_member(member_id):
+    result = jackson_family.delete_member(member_id)
+    if result:
+        return jsonify({"done": True}), 200
+    else:
+        return jsonify({"error": "Member not found"}), 400
+    
+@app.route('/members/<int:member_id>', methods=['PUT'])
+def update_member(member_id):
+    data = request.get_json()
+    member = jackson_family.get_member(member_id)
+
+    if member is None:
+        return jsonify({"error": "Member not found"}), 404
+    if "first_name" in data:
+        member["first_name"] = data["first_name"]
+    if "age" in data:
+        member["age"] = data["age"]
+    if "lucky_numbers" in data:
+        member["lucky_numbers"] = data["lucky_numbers"]
+
+    return jsonify(member), 200
 
 # This only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
